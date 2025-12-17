@@ -17,6 +17,7 @@ import (
 	"github.com/volmedo/padron/pkg/config"
 	"github.com/volmedo/padron/pkg/fx/app"
 	"github.com/volmedo/padron/pkg/fx/root"
+	"github.com/volmedo/padron/pkg/fx/ucan"
 )
 
 var log = logging.Logger("cmd/serve")
@@ -57,6 +58,8 @@ var Cmd = &cobra.Command{
 			app.CommonModules(appCfg),
 
 			root.Module,
+
+			ucan.Module,
 
 			// Post-startup operations: print server info and record telemetry
 			fx.Invoke(func(lc fx.Lifecycle) {
