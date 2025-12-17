@@ -63,10 +63,10 @@ var Cmd = &cobra.Command{
 				lc.Append(fx.Hook{
 					OnStart: func(ctx context.Context) error {
 						cmd.Println("")
-						cmd.Println(color.Green(" ▗", color.D))
-						cmd.Println(color.Green(" █") + color.Green("▌", color.D))
-						cmd.Println(color.Green("▗", color.B) + color.Green("█") + color.Green("▘", color.D))
-						cmd.Println(color.Green("▀") + color.Green("▘", color.D))
+						cmd.Println("     ▌  ▝    ", color.Green(" ▗", color.D))
+						cmd.Println("▛▌▞▌▛▌▛▘▛▌▛▌ ", color.Green(" █")+color.Green("▌", color.D))
+						cmd.Println("▙▌▛▌▙▌▌ ▙▌▌▌ ", color.Green("▗", color.B)+color.Green("█")+color.Green("▘", color.D))
+						cmd.Println("▌            ", color.Green("▀")+color.Green("▘", color.D))
 						cmd.Println("")
 						cmd.Printf("🫑 padrón %s\n", build.Version)
 						cmd.Printf("🆔 %s\n", appCfg.Identity.Signer.DID())
