@@ -16,7 +16,7 @@ import (
 	"github.com/alanshaw/ucantone/ucan/invocation"
 	mh "github.com/multiformats/go-multihash"
 
-	blobcap "github.com/volmedo/padron/pkg/capabilities/blob"
+	blobcap "github.com/alanshaw/libracha/capabilities/blob"
 )
 
 const (
@@ -47,7 +47,7 @@ func main() {
 
 	spaceBlobAddInv, err := spaceblobcap.Add.Invoke(
 		alice,
-		alice,
+		space,
 		&spaceblobcap.AddArguments{
 			Blob: spaceblobcap.Blob{
 				Digest: digest,
@@ -62,9 +62,8 @@ func main() {
 
 	inv, err := blobcap.Allocate.Invoke(
 		alice,
-		alice,
+		space,
 		&blobcap.AllocateArguments{
-			Space: space.DID(),
 			Blob: blobcap.Blob{
 				Digest: digest,
 				Size:   12345,

@@ -4,10 +4,11 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/alanshaw/libracha/capabilities"
+	blobcap "github.com/alanshaw/libracha/capabilities/blob"
 	"github.com/alanshaw/ucantone/execution/bindexec"
 	logging "github.com/ipfs/go-log/v2"
 
-	blobcap "github.com/volmedo/padron/pkg/capabilities/blob"
 	blobsvc "github.com/volmedo/padron/pkg/service/blob"
 	"github.com/volmedo/padron/pkg/ucan"
 )
@@ -33,9 +34,9 @@ func NewBlobAllocateHandler(svc *blobsvc.Service) *ucan.Handler {
 				}
 
 				address := &blobcap.BlobAddress{
-					URL:     blobcap.CborURL(*url),
+					URL:     capabilities.CborURL(*url),
 					Headers: map[string]string{},
-					Expires: blobcap.CborTime(time.Now().Add(24 * time.Hour)),
+					Expires: capabilities.CborTime(time.Now().Add(24 * time.Hour)),
 				}
 
 				ok := &blobcap.AllocateOK{
