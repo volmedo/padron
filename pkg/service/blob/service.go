@@ -195,5 +195,5 @@ func (s *Service) Accept(ctx context.Context, space did.DID, blob Blob, cause uc
 }
 
 func (s *Service) getBlobURL(digest mh.Multihash) *url.URL {
-	return s.publicURL.JoinPath("blobs", digestutil.Format(digest))
+	return s.publicURL.JoinPath("blob", digestutil.Format(digest))
 }
