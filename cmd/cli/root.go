@@ -42,8 +42,11 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Config file path. Attempts to load from user config directory if not set e.g. ~/.config/"+configFilePath)
 
-	rootCmd.PersistentFlags().String("data-dir", filepath.Join(lo.Must(os.UserHomeDir()), ".padron"), "Padrón data directory")
-	cobra.CheckErr(viper.BindPFlag("repo.data_dir", rootCmd.PersistentFlags().Lookup("data-dir")))
+	rootCmd.PersistentFlags().String("data-dir", filepath.Join(lo.Must(os.UserHomeDir()), ".padron", "data"), "Padrón data directory")
+	cobra.CheckErr(viper.BindPFlag("stores.data_dir", rootCmd.PersistentFlags().Lookup("data-dir")))
+
+	rootCmd.PersistentFlags().String("temp-dir", filepath.Join(lo.Must(os.UserHomeDir()), ".padron", "temp"), "Padrón temporary directory")
+	cobra.CheckErr(viper.BindPFlag("stores.temp_dir", rootCmd.PersistentFlags().Lookup("temp-dir")))
 
 	rootCmd.PersistentFlags().String("key-file", "", "Path to a PEM file containing ed25519 private key")
 	cobra.CheckErr(rootCmd.MarkPersistentFlagFilename("key-file", "pem"))

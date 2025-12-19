@@ -14,6 +14,8 @@ import (
 
 var log = logging.Logger("fx/ucan")
 
+var _ echofx.RouteRegistrar = (*Server)(nil)
+
 type Server struct {
 	ucanServer *server.HTTPServer
 }

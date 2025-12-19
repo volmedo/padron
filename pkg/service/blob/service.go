@@ -30,15 +30,27 @@ import (
 var log = logging.Logger("service/blob")
 
 type Service struct {
-	id		  ucan.Signer
-	publicURL  *url.URL
+	id          ucan.Signer
+	publicURL   *url.URL
 	blobs       blobstore.Blobstore
 	allocations allocationstore.AllocationStore
 	acceptances acceptancestore.AcceptanceStore
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService(
+	id ucan.Signer,
+	publicURL *url.URL,
+	blobs blobstore.Blobstore,
+	allocations allocationstore.AllocationStore,
+	acceptances acceptancestore.AcceptanceStore,
+) *Service {
+	return &Service{
+		id:          id,
+		publicURL:   publicURL,
+		blobs:       blobs,
+		allocations: allocations,
+		acceptances: nil,
+	}
 }
 
 type Blob struct {
@@ -146,8 +158,8 @@ func (s *Service) Accept(ctx context.Context, space did.DID, blob Blob, cause uc
 
 	sp, _ := ucantodid.Parse(space.String())
 	acc := acceptance.Acceptance{
-		Space: sp,
-		Blob: acceptance.Blob(blob),
+		Space:      sp,
+		Blob:       acceptance.Blob(blob),
 		ExecutedAt: uint64(time.Now().Unix()),
 		Cause:      cidlink.Link{Cid: cid.Cid(cause)},
 	}

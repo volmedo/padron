@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	spaceblobcap "github.com/alanshaw/1up-service/pkg/capabilities/space/blob"
 	"github.com/alanshaw/ucantone/client"
 	"github.com/alanshaw/ucantone/did"
 	"github.com/alanshaw/ucantone/execution"
-	"github.com/alanshaw/ucantone/ipld"
 	"github.com/alanshaw/ucantone/ipld/datamodel"
 	"github.com/alanshaw/ucantone/principal/ed25519"
 	"github.com/alanshaw/ucantone/result"
+	"github.com/alanshaw/ucantone/ucan"
+	"github.com/alanshaw/ucantone/ucan/delegation"
 	"github.com/alanshaw/ucantone/ucan/invocation"
 	mh "github.com/multiformats/go-multihash"
 
@@ -45,6 +47,17 @@ func main() {
 		panic(err)
 	}
 
+	spaceToAliceDel, err := delegation.Delegate(
+		space,
+		alice,
+		space,
+		"/ucan/*",
+		delegation.WithExpiration(ucan.UTCUnixTimestamp(time.Now().Add(1*time.Minute).Unix())), // 1 min
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	spaceBlobAddInv, err := spaceblobcap.Add.Invoke(
 		alice,
 		space,
@@ -55,6 +68,7 @@ func main() {
 			},
 		},
 		invocation.WithAudience(service),
+		invocation.WithProofs(spaceToAliceDel.Link()),
 	)
 	if err != nil {
 		panic(err)
@@ -71,38 +85,56 @@ func main() {
 			Cause: spaceBlobAddInv.Link(),
 		},
 		invocation.WithAudience(service),
+		invocation.WithProofs(spaceToAliceDel.Link()),
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	url, err := url.Parse(serviceURL)
+	fmt.Println("spaceToAliceDel:", spaceToAliceDel.Link())
+	fmt.Println("spaceBlobAddInv:", spaceBlobAddInv.Link())
+	fmt.Println("inv:", inv.Link())
+
+	svcURL, err := url.Parse(serviceURL)
 	if err != nil {
 		panic(err)
 	}
 
-	client, err := client.NewHTTP(url)
+	client, err := client.NewHTTP(svcURL)
 	if err != nil {
 		panic(err)
 	}
 
-	res, err := client.Execute(execution.NewRequest(context.Background(), inv))
-	if err != nil {
-		panic(err)
-	}
-
-	result.MatchResultR0(
-		res.Result(),
-		func(o ipld.Any) {
-			ok := blobcap.AllocateOK{}
-			err := datamodel.Rebind(datamodel.NewAny(o), &ok)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("/blob/allocate response: %+v\n\n", ok)
-		},
-		func(x ipld.Any) {
-			fmt.Printf("Invocation failed: %v\n\n", x)
-		},
+	req := execution.NewRequest(
+		context.Background(),
+		inv,
+		execution.WithDelegations(spaceToAliceDel),
+		execution.WithInvocations(spaceBlobAddInv),
 	)
+	res, err := client.Execute(req)
+	if err != nil {
+		panic(err)
+	}
+
+	o, x := result.Unwrap(res.Result())
+	if x != nil {
+		fmt.Printf("Invocation failed: %v\n\n", x)
+		return
+	}
+
+	ok := blobcap.AllocateOK{}
+	if err := datamodel.Rebind(datamodel.NewAny(o), &ok); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("/blob/allocate response:")
+	fmt.Printf("  Size: %d\n", ok.Size)
+	if ok.Address != nil {
+		fmt.Printf("  Upload URL: %s\n", ok.Address.URL.URL().String())
+		fmt.Printf("  Headers:    %v\n", ok.Address.Headers)
+		fmt.Printf("  Expires:    %s\n", ok.Address.Expires.Time().Format(time.RFC3339))
+	}
+	fmt.Println()
+
+	fmt.Println("/blob/allocate successful!")
 }

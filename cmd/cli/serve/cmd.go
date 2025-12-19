@@ -27,7 +27,7 @@ var Cmd = &cobra.Command{
 	Short: "Start the padrón storage node!",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		userCfg, err := config.Load[config.AppConfig]()
+		userCfg, err := config.Load[config.Config]()
 		if err != nil {
 			return fmt.Errorf("loading config: %w", err)
 		}
@@ -110,4 +110,11 @@ func init() {
 		"Port to listen on",
 	)
 	cobra.CheckErr(viper.BindPFlag("server.port", Cmd.PersistentFlags().Lookup("port")))
+
+	Cmd.PersistentFlags().String(
+		"public-url",
+		"http://localhost:3000",
+		"Public URL for the server",
+	)
+	cobra.CheckErr(viper.BindPFlag("server.public_url", Cmd.PersistentFlags().Lookup("public-url")))
 }

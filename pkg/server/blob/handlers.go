@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/alanshaw/libracha/digestutil"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/storacha/piri/pkg/store/allocationstore"
 	"github.com/storacha/piri/pkg/store/blobstore"
 )
+
+var log = logging.Logger("server/blob")
 
 func NewBlobGetHandler(blobs blobstore.Blobstore) echo.HandlerFunc {
 	if fsblobs, ok := blobs.(blobstore.FileSystemer); ok {

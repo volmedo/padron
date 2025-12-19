@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
 
-	"github.com/volmedo/padron/pkg/config/app"
 	echofx "github.com/volmedo/padron/pkg/fx/echo"
 	"github.com/volmedo/padron/pkg/server"
 )
@@ -26,8 +25,8 @@ type Handler struct {
 	id principal.Signer
 }
 
-func NewRootHandler(cfg app.IdentityConfig) *Handler {
-	return &Handler{id: cfg.Signer}
+func NewRootHandler(id principal.Signer) *Handler {
+	return &Handler{id: id}
 }
 
 func (h *Handler) RegisterRoutes(e *echo.Echo) {
