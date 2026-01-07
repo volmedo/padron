@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	spaceblobcap "github.com/alanshaw/1up-service/pkg/capabilities/space/blob"
+	blobcap "github.com/alanshaw/libracha/capabilities/blob"
 	"github.com/alanshaw/ucantone/client"
 	"github.com/alanshaw/ucantone/did"
 	"github.com/alanshaw/ucantone/execution"
@@ -17,8 +17,6 @@ import (
 	"github.com/alanshaw/ucantone/ucan/delegation"
 	"github.com/alanshaw/ucantone/ucan/invocation"
 	mh "github.com/multiformats/go-multihash"
-
-	blobcap "github.com/alanshaw/libracha/capabilities/blob"
 )
 
 const (
@@ -58,11 +56,11 @@ func main() {
 		panic(err)
 	}
 
-	spaceBlobAddInv, err := spaceblobcap.Add.Invoke(
+	spaceBlobAddInv, err := blobcap.Add.Invoke(
 		alice,
 		space,
-		&spaceblobcap.AddArguments{
-			Blob: spaceblobcap.Blob{
+		&blobcap.AddArguments{
+			Blob: blobcap.Blob{
 				Digest: digest,
 				Size:   12345,
 			},
@@ -116,7 +114,7 @@ func main() {
 		panic(err)
 	}
 
-	o, x := result.Unwrap(res.Result())
+	o, x := result.Unwrap(res.Out())
 	if x != nil {
 		fmt.Printf("Invocation failed: %v\n\n", x)
 		return
