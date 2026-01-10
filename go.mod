@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/alanshaw/libracha v0.0.0-20251219144841-bc96c56a118a
-	github.com/alanshaw/ucantone v0.0.0-20260107142715-f3e55efdef36
+	github.com/alanshaw/ucantone v0.0.0-20260110085638-a2075f550eca
 	github.com/go-playground/validator/v10 v10.29.0
 	github.com/ipfs/go-cid v0.6.0
 	github.com/ipfs/go-datastore v0.9.0

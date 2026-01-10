@@ -114,7 +114,7 @@ func main() {
 		panic(err)
 	}
 
-	o, x := result.Unwrap(res.Out())
+	o, x := result.Unwrap(res.Receipt().Out())
 	if x != nil {
 		fmt.Printf("Invocation failed: %v\n\n", x)
 		return
