@@ -7,6 +7,7 @@ import (
 	blobcap "github.com/alanshaw/libracha/capabilities/blob"
 	"github.com/alanshaw/ucantone/errors"
 	"github.com/alanshaw/ucantone/execution/bindexec"
+	"github.com/alanshaw/ucantone/ucan/container"
 	logging "github.com/ipfs/go-log/v2"
 
 	blobsvc "github.com/volmedo/padron/pkg/service/blob"
@@ -43,13 +44,12 @@ func NewBlobAllocateHandler(svc *blobsvc.Service) *ucan.Handler {
 					return fmt.Errorf("allocation failed: %w", err)
 				}
 
-				hdrs := make(map[string]string, len(address.Headers))
-				for k, v := range address.Headers {
-					hdrs[k] = v[0]
-				}
-
 				var addr *blobcap.BlobAddress
 				if address != nil {
+					hdrs := make(map[string]string, len(address.Headers))
+					for k, v := range address.Headers {
+						hdrs[k] = v[0]
+					}
 					addr = &blobcap.BlobAddress{
 						URL:     capabilities.CborURL(*address.URL),
 						Headers: hdrs,
@@ -87,6 +87,11 @@ func NewBlobAcceptHandler(svc *blobsvc.Service) *ucan.Handler {
 				)
 				if err != nil {
 					return fmt.Errorf("accept failed: %w", err)
+				}
+
+				err = res.SetMetadata(container.New(container.WithInvocations(locCommitment)))
+				if err != nil {
+					return fmt.Errorf("setting metadata: %w", err)
 				}
 
 				ok := &blobcap.AcceptOK{

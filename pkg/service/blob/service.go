@@ -8,12 +8,11 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/alanshaw/libracha/capabilities"
 	"github.com/alanshaw/libracha/capabilities/assert"
 	"github.com/alanshaw/libracha/digestutil"
 	"github.com/alanshaw/ucantone/did"
 	"github.com/alanshaw/ucantone/ucan"
-	"github.com/alanshaw/ucantone/ucan/delegation"
-	"github.com/alanshaw/ucantone/ucan/delegation/policy"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
@@ -49,7 +48,7 @@ func NewService(
 		publicURL:   publicURL,
 		blobs:       blobs,
 		allocations: allocations,
-		acceptances: nil,
+		acceptances: acceptances,
 	}
 }
 
@@ -141,7 +140,7 @@ func (s *Service) Allocate(ctx context.Context, space did.DID, blob Blob, cause 
 	return size, address, nil
 }
 
-func (s *Service) Accept(ctx context.Context, space did.DID, blob Blob, cause ucan.Link) (*delegation.Delegation, error) {
+func (s *Service) Accept(ctx context.Context, space did.DID, blob Blob, cause ucan.Link) (ucan.Invocation, error) {
 	log := log.With("space", space.String(), "blob", digestutil.Format(blob.Digest))
 	log.Infof("allocating blob of size %d", blob.Size)
 
@@ -171,18 +170,17 @@ func (s *Service) Accept(ctx context.Context, space did.DID, blob Blob, cause uc
 	}
 
 	// build location commitment
-	locCommitment, err := assert.Location.Delegate(
+	url := s.getBlobURL(blob.Digest)
+	size := blob.Size
+	locCommitment, err := assert.Location.Invoke(
 		s.id,
 		space,
-		s.id,
-		delegation.WithPolicyBuilder(
-			policy.Equal(".space", space.String()),
-			policy.Equal(".content", digestutil.Format(blob.Digest)),
-			policy.Equal(".location[0].url", s.getBlobURL(blob.Digest).String()),
-			policy.Equal(".range.offset", 0),
-			policy.Equal(".range.length", blob.Size),
-		),
-		delegation.WithNoExpiration(),
+		&assert.LocationArguments{
+			Space:    space,
+			Content:  blob.Digest,
+			Location: []capabilities.CborURL{capabilities.CborURL(*url)},
+			Range:    &assert.Range{Offset: 0, Length: &size},
+		},
 	)
 	if err != nil {
 		log.Errorw("creating location commitment", "error", err)
