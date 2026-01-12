@@ -3,9 +3,8 @@ module github.com/volmedo/padron
 go 1.25.3
 
 require (
-	github.com/alanshaw/1up-service v0.0.0-20251217125514-076ba9057b9c
-	github.com/alanshaw/libracha v0.0.0-20251218184620-493f3b4925c0
-	github.com/alanshaw/ucantone v0.0.0-20251216172216-fb5018e58e72
+	github.com/alanshaw/libracha v0.0.0-20260112101446-a193574f859e
+	github.com/alanshaw/ucantone v0.0.0-20260110085638-a2075f550eca
 	github.com/go-playground/validator/v10 v10.29.0
 	github.com/ipfs/go-cid v0.6.0
 	github.com/ipfs/go-datastore v0.9.0
@@ -26,7 +25,7 @@ require (
 )
 
 require (
-	github.com/alanshaw/dag-json-gen v0.0.3 // indirect
+	github.com/alanshaw/dag-json-gen v0.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/filecoin-project/go-data-segment v0.0.1 // indirect
 	github.com/filecoin-project/go-fil-commcid v0.3.1 // indirect

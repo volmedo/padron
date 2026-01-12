@@ -5,7 +5,9 @@ import (
 
 	"github.com/alanshaw/libracha/capabilities"
 	blobcap "github.com/alanshaw/libracha/capabilities/blob"
+	"github.com/alanshaw/ucantone/errors"
 	"github.com/alanshaw/ucantone/execution/bindexec"
+	"github.com/alanshaw/ucantone/ucan/container"
 	logging "github.com/ipfs/go-log/v2"
 
 	blobsvc "github.com/volmedo/padron/pkg/service/blob"
@@ -20,13 +22,13 @@ func NewBlobAllocateHandler(svc *blobsvc.Service) *ucan.Handler {
 	return &ucan.Handler{
 		Capability: blobcap.Allocate,
 		Handler: bindexec.NewHandler(
-			func(req *bindexec.Request[*blobcap.AllocateArguments]) (*bindexec.Response[*blobcap.AllocateOK], error) {
+			func(req *bindexec.Request[*blobcap.AllocateArguments], res *bindexec.Response[*blobcap.AllocateOK]) error {
 				args := req.Task().BindArguments()
 				log.Debugf("%+v", args)
 
 				// enforce max upload size requirements
 				if args.Blob.Size > maxUploadSize {
-					return nil, fmt.Errorf("blob size %d exceeds maximum upload size of %d bytes", args.Blob.Size, maxUploadSize)
+					return res.SetFailure(errors.New("MaximumSizeExceeded", fmt.Sprintf("blob size %d exceeds maximum upload size of %d bytes", args.Blob.Size, maxUploadSize)))
 				}
 
 				size, address, err := svc.Allocate(
@@ -39,16 +41,15 @@ func NewBlobAllocateHandler(svc *blobsvc.Service) *ucan.Handler {
 					req.Invocation().Link(),
 				)
 				if err != nil {
-					return nil, fmt.Errorf("allocation failed: %w", err)
-				}
-
-				hdrs := make(map[string]string, len(address.Headers))
-				for k, v := range address.Headers {
-					hdrs[k] = v[0]
+					return fmt.Errorf("allocation failed: %w", err)
 				}
 
 				var addr *blobcap.BlobAddress
 				if address != nil {
+					hdrs := make(map[string]string, len(address.Headers))
+					for k, v := range address.Headers {
+						hdrs[k] = v[0]
+					}
 					addr = &blobcap.BlobAddress{
 						URL:     capabilities.CborURL(*address.URL),
 						Headers: hdrs,
@@ -61,7 +62,7 @@ func NewBlobAllocateHandler(svc *blobsvc.Service) *ucan.Handler {
 					Address: addr,
 				}
 
-				return bindexec.NewResponse(bindexec.WithSuccess(ok))
+				return res.SetSuccess(ok)
 			},
 		),
 	}
@@ -71,7 +72,7 @@ func NewBlobAcceptHandler(svc *blobsvc.Service) *ucan.Handler {
 	return &ucan.Handler{
 		Capability: blobcap.Accept,
 		Handler: bindexec.NewHandler(
-			func(req *bindexec.Request[*blobcap.AcceptArguments]) (*bindexec.Response[*blobcap.AcceptOK], error) {
+			func(req *bindexec.Request[*blobcap.AcceptArguments], res *bindexec.Response[*blobcap.AcceptOK]) error {
 				args := req.Task().BindArguments()
 				log.Debugf("%+v", args)
 
@@ -85,14 +86,19 @@ func NewBlobAcceptHandler(svc *blobsvc.Service) *ucan.Handler {
 					req.Invocation().Link(),
 				)
 				if err != nil {
-					return nil, fmt.Errorf("accept failed: %w", err)
+					return fmt.Errorf("accept failed: %w", err)
+				}
+
+				err = res.SetMetadata(container.New(container.WithInvocations(locCommitment)))
+				if err != nil {
+					return fmt.Errorf("setting metadata: %w", err)
 				}
 
 				ok := &blobcap.AcceptOK{
 					Site: locCommitment.Link(),
 				}
-				
-				return bindexec.NewResponse(bindexec.WithSuccess(ok))
+
+				return res.SetSuccess(ok)
 			},
 		),
 	}
